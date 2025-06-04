@@ -1,7 +1,6 @@
 package com.utn.appparcial.model;
 
 public class Student extends User {
-    private static float averageGrade;
 
     public Student() {
     }
