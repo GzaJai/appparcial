@@ -23,11 +23,16 @@ Una vez que se inició la sesión se muestra el menú de opciones como profesor.
 
 Tambien la aplicación crea algunos alumnos para que se pueda ingresar y ver como es su menú.
 Para ingresar como alumno están las siguientes credenciales: 
- - Alumno 1: 
+ - Alumno 1:
+   
  -- **email:** juan.perez@utn.com
+ 
  --**contraseña:** 1234
- - Alumna 2: 
+ 
+ - Alumna 2:
+   
  -- **email:** lucia.gomez@utn.com
+ 
  --**contraseña:** 1234
 
 Una vez en el menú de alumno se pueden seleccionar dos opciones: 
