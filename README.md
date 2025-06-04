@@ -9,6 +9,7 @@ Al ejecutar la app esta crea la base de datos y crea una entidad Profesor. Esta 
 Una vez inicia la app se debe iniciar sesión, las credenciales para iniciar sesión como profesor administrador son:
 
 **email:** admin@utn.com
+
 **contraseña:** admin123
 
 Una vez que se inició la sesión se muestra el menú de opciones como profesor. Donde se pueden llevar a cabo varias tareas, las cuales son: 
