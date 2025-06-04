@@ -31,8 +31,7 @@ public class ConsoleApp {
         System.out.println("=== Bienvenido al sistema de gestión de exámenes ===");
         System.out.println("1. Ingresar como Profesor");
         System.out.println("2. Ingresar como Alumno");
-        System.out.print("Elegí una opción: ");
-        int option = Integer.parseInt(scanner.nextLine());
+        int option = promptInt("Elegí una opción: ");
 
         switch (option) {
             case 1 -> loginAsProfessor();
@@ -43,10 +42,8 @@ public class ConsoleApp {
 
     private void loginAsProfessor() {
         System.out.println("\n-- Login Profesor --");
-        System.out.print("Email: ");
-        String email = scanner.nextLine();
-        System.out.print("Contraseña: ");
-        String password = scanner.nextLine();
+        String email = promptNonEmptyString("Email: ");
+        String password = promptNonEmptyString("Contraseña: ");
 
         Professor professor = professorDAO.findByEmailAndPassword(email, password);
         if (professor != null) {
@@ -59,10 +56,8 @@ public class ConsoleApp {
 
     private void loginAsStudent() {
         System.out.println("\n-- Login Alumno --");
-        System.out.print("Email: ");
-        String email = scanner.nextLine();
-        System.out.print("Contraseña: ");
-        String password = scanner.nextLine();
+        String email = promptNonEmptyString("Email: ");
+        String password = promptNonEmptyString("Contraseña: ");
 
         Student student = studentDAO.findByEmailAndPassword(email, password);
         if (student != null) {
@@ -87,9 +82,8 @@ public class ConsoleApp {
             System.out.println("4. Registrar nuevo alumno");
             System.out.println("5. Ver alumnos");
             System.out.println("6. Salir");
-            System.out.print("\nElegí una opción: ");
 
-            int option = Integer.parseInt(scanner.nextLine());
+            int option = promptInt("\nElegí una opción: ");
 
             switch (option) {
                 case 1 -> {
@@ -98,9 +92,8 @@ public class ConsoleApp {
                     for (Subject s : subjects) {
                         System.out.println(s.getId() + ": " + s.getName());
                     }
-                    System.out.println("\n");
-                    System.out.print("Ingrese ID materia a asignarse: ");
-                    long subjectId = Long.parseLong(scanner.nextLine());
+                    System.out.println();
+                    long subjectId = promptLong("Ingrese ID materia a asignarse: ");
 
                     if (!professorSubjectDAO.isSubjectAssignedToProfessor(professorId, subjectId)) {
                         professorSubjectDAO.assignSubjectToProfessor(professorId, subjectId);
@@ -111,178 +104,148 @@ public class ConsoleApp {
                 }
                 case 2 -> {
                     List<Long> subjectIds = professorSubjectDAO.findSubjectIdsByProfessor(professorId);
-                    if(subjectIds.isEmpty()) {
+                    if (subjectIds.isEmpty()) {
                         System.out.println("No estás asignado a ninguna materia.");
                         break;
                     }
 
-                    System.out.println("Materias asignadas a vos:");
-                    for(Long id : subjectIds) {
+                    System.out.println("Materias asignadas:");
+                    for (Long id : subjectIds) {
                         Subject s = subjectDAO.findById(id);
-                        if(s != null) {
+                        if (s != null) {
                             System.out.println(s.getId() + ": " + s.getName());
                         }
                     }
-                    System.out.print("Ingrese ID de la materia para el examen: ");
-                    long subjectId = Long.parseLong(scanner.nextLine());
+
+                    long subjectId = promptLong("Ingrese ID de la materia para el examen: ");
 
                     if (!professorSubjectDAO.isSubjectAssignedToProfessor(professorId, subjectId)) {
                         System.out.println("No estás asignado a esa materia.");
                         break;
                     }
 
-                    System.out.print("Ingrese título del examen: ");
-                    String title = scanner.nextLine();
-
-                    System.out.print("Ingrese fecha del examen (YYYY-MM-DD): ");
-                    String dateStr = scanner.nextLine();
-                    LocalDate date;
-                    try {
-                        date = LocalDate.parse(dateStr);
-                    } catch (DateTimeParseException e) {
-                        System.out.println("Fecha inválida.");
-                        break;
-                    }
+                    String title = promptNonEmptyString("Ingrese título del examen: ");
+                    LocalDate date = promptDate("Ingrese fecha del examen (AAAA-MM-DD): ");
 
                     Exam exam = new Exam(null, title, date, subjectId, professorId);
                     examDAO.save(exam);
                     System.out.println("Examen creado con ID: " + exam.getId());
                 }
-
                 case 3 -> {
                     List<Exam> exams = examDAO.findByProfessorId(professorId);
                     if (exams.isEmpty()) {
                         System.out.println("No tenés exámenes creados.");
                         break;
                     }
+
                     System.out.println("Tus exámenes:");
                     for (Exam ex : exams) {
                         Subject subj = subjectDAO.findById(ex.getSubjectId());
                         System.out.println(ex.getId() + ": " + ex.getTitle() + " | Fecha: " + ex.getDate() + " | Materia: " + (subj != null ? subj.getName() : "Desconocida"));
                     }
-                    System.out.print("Ingrese ID del examen: ");
-                    long examId = Long.parseLong(scanner.nextLine());
 
+                    long examId = promptLong("Ingrese ID del examen: ");
                     Exam exam = examDAO.findById(examId);
-                    if (exam == null) {
-                        System.out.println("Examen no encontrado.");
-                        break;
-                    }
-
-                    if (!professorSubjectDAO.isSubjectAssignedToProfessor(professorId, exam.getSubjectId())) {
-                        System.out.println("No estás asignado a la materia de ese examen.");
+                    if (exam == null || !professorSubjectDAO.isSubjectAssignedToProfessor(professorId, exam.getSubjectId())) {
+                        System.out.println("Examen inválido o no perteneciente a tus materias.");
                         break;
                     }
 
                     List<Student> students = studentDAO.findBySubjectId(exam.getSubjectId());
-                    System.out.println("Alumnos para poner nota:");
+                    if (students.isEmpty()) {
+                        System.out.println("No hay alumnos inscritos en la materia del examen. No podés registrar notas.");
+                        break;
+                    }
+
+                    System.out.println("Alumnos:");
                     for (Student st : students) {
                         System.out.println(st.getId() + ": " + st.getName() + " " + st.getLastName());
                     }
 
-                    System.out.print("Ingrese ID del alumno: ");
-                    long studentId = Long.parseLong(scanner.nextLine());
-                    System.out.print("Ingrese nota: ");
-                    double gradeValue = Double.parseDouble(scanner.nextLine());
+                    long studentId = promptLong("Ingrese ID del alumno: ");
+                    double gradeValue = promptGrade("Ingrese nota (1-10): ");
 
                     Grade grade = new Grade(null, examId, studentId, gradeValue, null);
                     gradeDAO.save(grade);
                     System.out.println("Nota registrada correctamente.");
                 }
-
                 case 4 -> {
                     System.out.println("\n--- Registro de Alumno ---");
-                    System.out.print("Nombre: ");
-                    String name = scanner.nextLine();
-                    System.out.print("Apellido: ");
-                    String lastName = scanner.nextLine();
-                    System.out.print("Email: ");
-                    String email = scanner.nextLine();
-                    System.out.print("Contraseña: ");
-                    String password = scanner.nextLine();
+                    String name = promptNonEmptyString("Nombre: ");
+                    String lastName = promptNonEmptyString("Apellido: ");
+                    String email = promptNonEmptyString("Email: ");
+                    String password = promptNonEmptyString("Contraseña: ");
 
                     Student student = new Student(null, name, lastName, email, password);
                     studentDAO.save(student);
                     System.out.println("\nAlumno registrado con ID: " + student.getId() + "\n");
 
                     List<Subject> subjects = subjectDAO.findAll();
-                    System.out.println("Asignar al alumno a una materia: \n");
+                    System.out.println("Materias disponibles:");
                     for (Subject s : subjects) {
                         System.out.println(s.getId() + ": " + s.getName());
                     }
-                    System.out.print("Asignar materia por ID: ");
-                    long subjectId = Long.parseLong(scanner.nextLine());
 
-                    // Necesitás un DAO para eso
+                    long subjectId = promptLong("Asignar materia por ID: ");
                     StudentSubjectDAO studentSubjectDAO = new StudentSubjectDAOImpl(connection);
                     studentSubjectDAO.assignStudentToSubject(student.getId(), subjectId);
                     System.out.println("Alumno asignado a la materia correctamente.");
                 }
                 case 5 -> {
                     List<Long> subjectIds = professorSubjectDAO.findSubjectIdsByProfessor(professorId);
-                    if(subjectIds.isEmpty()) {
+                    if (subjectIds.isEmpty()) {
                         System.out.println("No estás asignado a ninguna materia.");
                         break;
                     }
 
-                    // Listar alumnos de todas las materias del profesor
                     List<Student> students = new ArrayList<>();
-                    for(Long subjectId : subjectIds) {
-                        List<Student> studentsBySubject = studentDAO.findBySubjectId(subjectId);
-                        for(Student s : studentsBySubject) {
-                            if(students.stream().noneMatch(st -> st.getId().equals(s.getId()))) {
+                    for (Long subjectId : subjectIds) {
+                        for (Student s : studentDAO.findBySubjectId(subjectId)) {
+                            if (students.stream().noneMatch(st -> st.getId().equals(s.getId()))) {
                                 students.add(s);
                             }
                         }
                     }
 
-                    if(students.isEmpty()) {
+                    if (students.isEmpty()) {
                         System.out.println("No hay alumnos inscritos en tus materias.");
                         break;
                     }
 
                     System.out.println("\n-- Alumnos inscritos en tus materias:");
-                    for(Student s : students) {
+                    for (Student s : students) {
                         System.out.println(s.getId() + ": " + s.getName() + " " + s.getLastName());
                     }
-                    System.out.println("\n");
 
-                    System.out.print("Ingrese ID del alumno para ver sus notas o 0 para volver: ");
-                    long studentId = Long.parseLong(scanner.nextLine());
-                    if(studentId == 0) break;
+                    long studentId = promptLong("\nIngrese ID del alumno para ver sus notas o 0 para volver: ");
+                    if (studentId == 0) break;
 
                     Student selectedStudent = students.stream()
                             .filter(s -> s.getId().equals(studentId))
-                            .findFirst()
-                            .orElse(null);
+                            .findFirst().orElse(null);
 
-                    if(selectedStudent == null) {
+                    if (selectedStudent == null) {
                         System.out.println("Alumno no encontrado.");
                         break;
                     }
 
-                    // Listar notas del alumno en las materias del profesor
                     List<Grade> grades = new ArrayList<>();
-                    for(Long subjectId : subjectIds) {
-                        List<Exam> exams = examDAO.findBySubjectId(subjectId);
-                        for(Exam ex : exams) {
-                            List<Grade> gradesByExam = gradeDAO.findByExamIdAndStudentId(ex.getId(), studentId);
-                            grades.addAll(gradesByExam);
+                    for (Long subjectId : subjectIds) {
+                        for (Exam ex : examDAO.findBySubjectId(subjectId)) {
+                            grades.addAll(gradeDAO.findByExamIdAndStudentId(ex.getId(), studentId));
                         }
                     }
 
-                    if(grades.isEmpty()) {
+                    if (grades.isEmpty()) {
                         System.out.println("El alumno no tiene notas en tus materias.");
                     } else {
                         System.out.println("Notas del alumno:");
-                        for(Grade g : grades) {
+                        for (Grade g : grades) {
                             Exam exam = examDAO.findById(g.getExamId());
-                            if(exam != null) {
-                                Subject subject = subjectDAO.findById(exam.getSubjectId());
-                                System.out.println("Materia: " + (subject != null ? subject.getName() : "Desconocida") +
-                                        " | Examen: " + exam.getTitle() +
-                                        " | Nota: " + g.getGrade());
-                            }
+                            Subject subject = subjectDAO.findById(exam.getSubjectId());
+                            System.out.println("Materia: " + (subject != null ? subject.getName() : "Desconocida")
+                                    + " | Examen: " + exam.getTitle()
+                                    + " | Nota: " + g.getGrade());
                         }
                     }
                 }
@@ -296,27 +259,78 @@ public class ConsoleApp {
         System.out.println(">> (Aquí podrías mostrar calificaciones, materias, etc.)\n");
     }
 
-    private void createStudent() {
-        System.out.print("Nombre: ");
-        String name = scanner.nextLine();
-        System.out.print("Apellido: ");
-        String lastName = scanner.nextLine();
-        System.out.print("Email: ");
-        String email = scanner.nextLine();
-        System.out.print("Contraseña: ");
-        String password = scanner.nextLine();
+    // metodos auxiliares para validación de entrada
 
-        Student student = new Student(null, name, lastName, email, password);
-        studentDAO.save(student);
-
-        System.out.println("\n>>> Alumno creado <<<\n");
+    private String promptNonEmptyString(String message) {
+        while (true) {
+            System.out.print(message);
+            String input = scanner.nextLine().trim();
+            if (!input.isEmpty()) return input;
+            System.out.println("Entrada vacía. Por favor, intentá nuevamente.");
+        }
     }
 
-    private void listStudents() {
-        System.out.println("\n--- Lista de alumnos ---");
-        for (Student s : studentDAO.findAll()) {
-            System.out.println(s.getId() + ": " + s.getName() + " " + s.getLastName());
+    private int promptInt(String message) {
+        while (true) {
+            System.out.print(message);
+            String input = scanner.nextLine().trim();
+            try {
+                return Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida. Debe ser un número entero.");
+            }
         }
-        System.out.println("--- Fin de la lista ---\n");
+    }
+
+    private long promptLong(String message) {
+        while (true) {
+            System.out.print(message);
+            String input = scanner.nextLine().trim();
+            try {
+                return Long.parseLong(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida. Debe ser un número.");
+            }
+        }
+    }
+
+    private double promptDouble(String message) {
+        while (true) {
+            System.out.print(message);
+            String input = scanner.nextLine().trim();
+            try {
+                return Double.parseDouble(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida. Debe ser un número con decimales.");
+            }
+        }
+    }
+
+    private LocalDate promptDate(String message) {
+        while (true) {
+            System.out.print(message);
+            String input = scanner.nextLine().trim();
+            try {
+                return LocalDate.parse(input);
+            } catch (DateTimeParseException e) {
+                System.out.println("Fecha inválida. Usá el formato YYYY-MM-DD.");
+            }
+        }
+    }
+    private double promptGrade(String message) {
+        while (true) {
+            System.out.print(message);
+            String input = scanner.nextLine().trim();
+            try {
+                double grade = Double.parseDouble(input);
+                if (grade >= 1 && grade <= 10) {
+                    return grade;
+                } else {
+                    System.out.println("La nota debe estar entre 1 y 10.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida. Debe ser un número con decimales.");
+            }
+        }
     }
 }
