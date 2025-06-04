@@ -167,5 +167,59 @@ public class GradeDAOImpl implements GradeDAO {
         }
         return grades;
     }
-}
 
+    @Override
+    public void printGradesWithDetailsByStudent(long studentId) {
+        String sql = """
+            SELECT s.name AS subject_name, e.title AS exam_name, g.grade
+            FROM grade g
+            JOIN exam e ON g.exam_id = e.id
+            JOIN subject s ON e.subject_id = s.id
+            WHERE g.student_id = ?
+        """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, studentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                System.out.println("\n--- Notas del alumno ---");
+                while (rs.next()) {
+                    String subjectName = rs.getString("subject_name");
+                    String examName = rs.getString("exam_name");
+                    double gradeValue = rs.getDouble("grade");
+
+                    System.out.println("Materia: " + subjectName +
+                            " | Examen: " + examName +
+                            " | Nota: " + gradeValue);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error retrieving grades with details", e);
+        }
+    }
+
+    public void printSubjectsByStudent(long studentId) {
+        String sql = """
+            SELECT s.name AS subject_name
+            FROM studentSubject ss
+            JOIN subject s ON ss.subject_id = s.id
+            WHERE ss.student_id = ?
+        """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, studentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                System.out.println("\n--- Materias del alumno ---");
+                int count = 0;
+                while (rs.next()) {
+                    count++;
+                    System.out.println(count + ". " + rs.getString("subject_name"));
+                }
+                if (count == 0) {
+                    System.out.println("No se encontraron materias asignadas.");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error retrieving subjects for student", e);
+        }
+    }
+}

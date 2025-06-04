@@ -1,6 +1,7 @@
 package com.utn.appparcial.dao.impl;
 
 import com.utn.appparcial.dao.StudentSubjectDAO;
+import com.utn.appparcial.model.Subject;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -44,19 +45,30 @@ public class StudentSubjectDAOImpl implements StudentSubjectDAO {
 
     // metodo para buscar materias en donde esta el alumno
     @Override
-    public List<Long> findSubjectIdsByStudent(long studentId) {
-        List<Long> subjects = new ArrayList<>();
-        String sql = "SELECT subject_id FROM StudentSubject WHERE student_id = ?";
+    public List<Subject> findSubjectsByStudentId(Long studentId) {
+        List<Subject> subjects = new ArrayList<>();
+        String sql = """
+        SELECT s.id, s.name 
+        FROM Subject s
+        JOIN StudentSubject ss ON s.id = ss.subject_id
+        WHERE ss.student_id = ?
+    """;
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, studentId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    subjects.add(rs.getLong("subject_id"));
+                    Subject subject = new Subject(
+                            rs.getLong("id"),
+                            rs.getString("name")
+                    );
+                    subjects.add(subject);
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error retrieving student's subjects", e);
+            throw new RuntimeException("Error retrieving subjects", e);
         }
+
         return subjects;
     }
 

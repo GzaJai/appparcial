@@ -110,6 +110,34 @@ public class DatabaseUtil {
                           (4, 'Física');        
             """;
 
+            String addStudentsData = """
+                INSERT INTO app_user (name, last_name, email, password) VALUES
+                    ('Juan', 'Pérez', 'juan.perez@utn.com', '1234'),
+                    ('Lucía', 'Gómez', 'lucia.gomez@utn.com', '1234'),
+                    ('Prof.', 'Jirafales', 'admin@utn.com', 'admin123');
+                INSERT INTO student (id) VALUES 
+                    (1),
+                    (2);
+                INSERT INTO professor (id) VALUES
+                    (3);
+                INSERT INTO studentSubject (student_id, subject_id) VALUES
+                        (1, 1),
+                        (1, 2),
+                        (2, 1),
+                        (2, 3);
+                INSERT INTO exam (subject_id, professor_id, title) VALUES
+                        (1, 3, 'Parcial 1'),
+                        (1, 3, 'Parcial 2'),
+                        (3, 3, 'Global');
+                INSERT INTO grade (exam_id, student_id, grade) VALUES
+                        (1, 1, 8),
+                        (1, 2, 4),
+                        (2, 1, 9),
+                        (2, 2, 10),
+                        (3, 1, 6),
+                        (3, 2, 10);
+                    """;
+
             stmt.execute(createUserTable);
             stmt.execute(createStudentTable);
             stmt.execute(createProfessorTable);
@@ -119,6 +147,7 @@ public class DatabaseUtil {
             stmt.execute(createExamTable);
             stmt.execute(createGradeTable);
             stmt.execute(addSubjects);
+            stmt.execute(addStudentsData);
 
         } catch (SQLException e) {
             throw new RuntimeException("Error initializing database schema", e);

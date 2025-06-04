@@ -17,6 +17,7 @@ public class ConsoleApp {
     private final StudentDAO studentDAO;
     private final ProfessorDAO professorDAO;
     private final SubjectDAO subjectDAO;
+    private final GradeDAO gradeDAO;
     private final Scanner scanner;
 
     public ConsoleApp(Connection connection) {
@@ -24,6 +25,7 @@ public class ConsoleApp {
         this.studentDAO = new StudentDAOImpl(connection);
         this.professorDAO = new ProfessorDAOImpl(connection);
         this.subjectDAO = new SubjectDAOImpl(connection);
+        this.gradeDAO = new GradeDAOImpl(connection);
         this.scanner = new Scanner(System.in);
     }
 
@@ -62,7 +64,7 @@ public class ConsoleApp {
         Student student = studentDAO.findByEmailAndPassword(email, password);
         if (student != null) {
             System.out.println("Bienvenido, " + student.getName() + " " + student.getLastName() + "\n");
-            studentMenu();
+            studentMenu(student.getId());
         } else {
             System.out.println("Credenciales inválidas.\n");
         }
@@ -81,7 +83,7 @@ public class ConsoleApp {
             System.out.println("3. Poner nota a alumno");
             System.out.println("4. Registrar nuevo alumno");
             System.out.println("5. Ver alumnos");
-            System.out.println("6. Salir");
+            System.out.println("0. Salir");
 
             int option = promptInt("\nElegí una opción: ");
 
@@ -249,14 +251,31 @@ public class ConsoleApp {
                         }
                     }
                 }
-                case 6 -> running = false;
+                case 0 -> running = false;
                 default -> System.out.println("Opción inválida.");
             }
         }
     }
 
-    private void studentMenu() {
-        System.out.println(">> (Aquí podrías mostrar calificaciones, materias, etc.)\n");
+    private void studentMenu(long studentId) {
+        boolean exit = false;
+
+        while (!exit) {
+            System.out.println("\n--- Menú del Alumno ---");
+            System.out.println("1. Ver materias");
+            System.out.println("2. Ver notas");
+            System.out.println("0. Salir");
+
+            System.out.print("Ingrese una opción: ");
+            String option = scanner.nextLine();
+
+            switch (option) {
+                case "1" -> gradeDAO.printSubjectsByStudent(studentId);
+                case "2" -> gradeDAO.printGradesWithDetailsByStudent(studentId);
+                case "0" -> exit = true;
+                default -> System.out.println("Opción inválida. Intente nuevamente.");
+            }
+        }
     }
 
     // metodos auxiliares para validación de entrada
@@ -333,4 +352,18 @@ public class ConsoleApp {
             }
         }
     }
+    private void viewEnrolledSubjects(Student student) {
+        StudentSubjectDAO studentSubjectDAO = new StudentSubjectDAOImpl(connection);
+        List<Subject> subjects = studentSubjectDAO.findSubjectsByStudentId(student.getId());
+
+        if (subjects.isEmpty()) {
+            System.out.println("No estás inscrito en ninguna materia.");
+        } else {
+            System.out.println("\nMaterias inscritas:");
+            for (Subject s : subjects) {
+                System.out.println("- " + s.getName());
+            }
+        }
+    }
+
 }

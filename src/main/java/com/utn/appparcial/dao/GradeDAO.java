@@ -13,4 +13,6 @@ public interface GradeDAO {
     void update(Grade grade);
     void delete(Long id);
     List<Grade> findByExamIdAndStudentId(Long id, long studentId);
+    void printGradesWithDetailsByStudent(long studentId);
+    void printSubjectsByStudent(long studentId);
 }
