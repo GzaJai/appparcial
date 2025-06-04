@@ -1,7 +1,7 @@
 package com.utn.appparcial.model;
 
 public class User {
-    private int id;
+    private Long id;
     private String name;
     private String lastName;
     private String email;
@@ -9,7 +9,7 @@ public class User {
 
     public User() {}
 
-    public User(int id, String name, String lastName, String email, String password) {
+    public User(Long id, String name, String lastName, String email, String password) {
         this.id = id;
         this.name = name;
         this.lastName = lastName;
@@ -18,7 +18,7 @@ public class User {
     }
 
     // getters
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
@@ -39,7 +39,7 @@ public class User {
     }
 
     // setters
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
