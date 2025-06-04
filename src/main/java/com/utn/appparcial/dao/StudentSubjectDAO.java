@@ -9,4 +9,5 @@ public interface StudentSubjectDAO {
     void unenrollStudentInSubject(long studentId, long subjectId);
     List<Long> findSubjectIdsByStudent(long studentId);
     boolean isStudentEnrolledInSubject(long studentId, long subjectId);
+    void assignStudentToSubject(Long id, long subjectId);
 }

@@ -12,4 +12,5 @@ public interface GradeDAO {
     List<Grade> findByExamId(Long examId);
     void update(Grade grade);
     void delete(Long id);
+    List<Grade> findByExamIdAndStudentId(Long id, long studentId);
 }

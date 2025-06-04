@@ -17,9 +17,9 @@ public class GradeDAOImpl implements GradeDAO {
 
     @Override
     public void save(Grade grade) {
-        String sql = "INSERT INTO grade (value, student_id, exam_id) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO grade (grade, student_id, exam_id) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setDouble(1, grade.getValue());
+            stmt.setDouble(1, grade.getGrade());
             stmt.setLong(2, grade.getStudentId());
             stmt.setLong(3, grade.getExamId());
             stmt.executeUpdate();
@@ -42,9 +42,10 @@ public class GradeDAOImpl implements GradeDAO {
             if (rs.next()) {
                 return new Grade(
                         rs.getLong("id"),
-                        rs.getDouble("value"),
+                        rs.getLong("exam_id"),
                         rs.getLong("student_id"),
-                        rs.getLong("exam_id")
+                        rs.getDouble("grade"),
+                        rs.getString("observations")
                 );
             }
         } catch (SQLException e) {
@@ -62,9 +63,10 @@ public class GradeDAOImpl implements GradeDAO {
             while (rs.next()) {
                 grades.add(new Grade(
                         rs.getLong("id"),
-                        rs.getDouble("value"),
+                        rs.getLong("exam_id"),
                         rs.getLong("student_id"),
-                        rs.getLong("exam_id")
+                        rs.getDouble("grade"),
+                        rs.getString("observations")
                 ));
             }
         } catch (SQLException e) {
@@ -83,9 +85,10 @@ public class GradeDAOImpl implements GradeDAO {
             while (rs.next()) {
                 grades.add(new Grade(
                         rs.getLong("id"),
-                        rs.getDouble("value"),
+                        rs.getLong("exam_id"),
                         rs.getLong("student_id"),
-                        rs.getLong("exam_id")
+                        rs.getDouble("grade"),
+                        rs.getString("observations")
                 ));
             }
         } catch (SQLException e) {
@@ -104,9 +107,10 @@ public class GradeDAOImpl implements GradeDAO {
             while (rs.next()) {
                 grades.add(new Grade(
                         rs.getLong("id"),
-                        rs.getDouble("value"),
+                        rs.getLong("exam_id"),
                         rs.getLong("student_id"),
-                        rs.getLong("exam_id")
+                        rs.getDouble("grade"),
+                        rs.getString("observations")
                 ));
             }
         } catch (SQLException e) {
@@ -119,7 +123,7 @@ public class GradeDAOImpl implements GradeDAO {
     public void update(Grade grade) {
         String sql = "UPDATE grade SET value = ?, student_id = ?, exam_id = ? WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setDouble(1, grade.getValue());
+            stmt.setDouble(1, grade.getGrade());
             stmt.setLong(2, grade.getStudentId());
             stmt.setLong(3, grade.getExamId());
             stmt.setLong(4, grade.getId());
@@ -138,6 +142,30 @@ public class GradeDAOImpl implements GradeDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public List<Grade> findByExamIdAndStudentId(Long examId, long studentId) {
+        List<Grade> grades = new ArrayList<>();
+        String sql = "SELECT * FROM grade WHERE exam_id = ? AND student_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, examId);
+            stmt.setLong(2, studentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    grades.add(new Grade(
+                            rs.getLong("id"),
+                            rs.getLong("exam_id"),
+                            rs.getLong("student_id"),
+                            rs.getDouble("grade"),
+                            rs.getString("observations")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error consultando las notas del alumno para el examen", e);
+        }
+        return grades;
     }
 }
 

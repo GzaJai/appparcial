@@ -74,4 +74,17 @@ public class StudentSubjectDAOImpl implements StudentSubjectDAO {
             throw new RuntimeException("Error comprobando si el alumno está en la materia", e);
         }
     }
+
+    @Override
+    public void assignStudentToSubject(Long studentId, long subjectId) {
+        String sql = "INSERT INTO StudentSubject (student_id, subject_id) VALUES (?, ?)";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, studentId);
+            stmt.setLong(2, subjectId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al asignar alumno a la materia", e);
+        }
+    }
 }

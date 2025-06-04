@@ -20,7 +20,7 @@ public class ProfessorDAOImpl implements ProfessorDAO {
         try {
             connection.setAutoCommit(false);
 
-            String userSql = "INSERT INTO user (name, last_name, email, password) VALUES (?, ?, ?, ?)";
+            String userSql = "INSERT INTO app_user (name, last_name, email, password) VALUES (?, ?, ?, ?)";
             try (PreparedStatement userStmt = connection.prepareStatement(userSql, Statement.RETURN_GENERATED_KEYS)) {
                 userStmt.setString(1, professor.getName());
                 userStmt.setString(2, professor.getLastName());
@@ -57,7 +57,7 @@ public class ProfessorDAOImpl implements ProfessorDAO {
 
     @Override
     public Professor findById(Long id) {
-        String sql = "SELECT u.* FROM user u JOIN professor p ON u.id = p.id WHERE u.id = ?";
+        String sql = "SELECT u.* FROM app_user u JOIN professor p ON u.id = p.id WHERE u.id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
@@ -79,7 +79,7 @@ public class ProfessorDAOImpl implements ProfessorDAO {
     @Override
     public List<Professor> findAll() {
         List<Professor> professors = new ArrayList<>();
-        String sql = "SELECT u.* FROM user u JOIN professor p ON u.id = p.id";
+        String sql = "SELECT u.* FROM app_user u JOIN professor p ON u.id = p.id";
         try (PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
@@ -99,7 +99,7 @@ public class ProfessorDAOImpl implements ProfessorDAO {
 
     @Override
     public void update(Professor professor) {
-        String sql = "UPDATE user SET name = ?, last_name = ?, email = ?, password = ? WHERE id = ?";
+        String sql = "UPDATE app_user SET name = ?, last_name = ?, email = ?, password = ? WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, professor.getName());
             stmt.setString(2, professor.getLastName());
@@ -123,7 +123,7 @@ public class ProfessorDAOImpl implements ProfessorDAO {
                 stmt.executeUpdate();
             }
 
-            String userSql = "DELETE FROM user WHERE id = ?";
+            String userSql = "DELETE FROM app_user WHERE id = ?";
             try (PreparedStatement stmt = connection.prepareStatement(userSql)) {
                 stmt.setLong(1, id);
                 stmt.executeUpdate();
@@ -142,6 +142,32 @@ public class ProfessorDAOImpl implements ProfessorDAO {
                 connection.setAutoCommit(true);
             } catch (SQLException ignore) {}
         }
+    }
+
+    @Override
+    public Professor findByEmailAndPassword(String email, String password) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "SELECT u.id, u.name, u.last_name, u.email, u.password " +
+                        "FROM app_user u JOIN professor s ON u.id = s.id " +
+                        "WHERE u.email = ? AND u.password = ?")) {
+
+            stmt.setString(1, email);
+            stmt.setString(2, password);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Professor(
+                        rs.getLong("id"),
+                        rs.getString("name"),
+                        rs.getString("last_name"),
+                        rs.getString("email"),
+                        rs.getString("password")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
 

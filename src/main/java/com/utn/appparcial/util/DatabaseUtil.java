@@ -29,9 +29,9 @@ public class DatabaseUtil {
 
             String createUserTable = """
                 CREATE TABLE IF NOT EXISTS app_user (
-                    id BIGINT PRIMARY KEY,
+                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
                     name VARCHAR(100) NOT NULL,
-                    lastName VARCHAR(100) NOT NULL,
+                    last_name VARCHAR(100) NOT NULL,
                     email VARCHAR(100) NOT NULL UNIQUE,
                     password VARCHAR(100) NOT NULL
                 );
@@ -102,6 +102,14 @@ public class DatabaseUtil {
                 );
             """;
 
+            String addSubjects = """
+                INSERT INTO subject (id, name) VALUES
+                          (1, 'Matemáticas'),
+                          (2, 'Historia'),
+                          (3, 'Programación'),
+                          (4, 'Física');        
+            """;
+
             stmt.execute(createUserTable);
             stmt.execute(createStudentTable);
             stmt.execute(createProfessorTable);
@@ -110,6 +118,7 @@ public class DatabaseUtil {
             stmt.execute(createProfessorSubjectTable);
             stmt.execute(createExamTable);
             stmt.execute(createGradeTable);
+            stmt.execute(addSubjects);
 
         } catch (SQLException e) {
             throw new RuntimeException("Error initializing database schema", e);

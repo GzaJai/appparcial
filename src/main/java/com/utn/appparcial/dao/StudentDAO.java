@@ -9,4 +9,6 @@ public interface StudentDAO {
     List<Student> findAll();
     void update(Student student);
     void delete(Long id);
+    Student findByEmailAndPassword(String email, String password);
+    List<Student> findBySubjectId(Long subjectId);
 }

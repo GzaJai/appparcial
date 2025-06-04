@@ -47,7 +47,7 @@ public class ProfessorSubjectDAOImpl implements ProfessorSubjectDAO {
     @Override
     public List<Long> findSubjectIdsByProfessor(long professorId) {
         List<Long> subjects = new ArrayList<>();
-        String sql = "SELECT * FROM Professor WHERE professor_id = ?";
+        String sql = "SELECT * FROM professorSubject WHERE professor_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, professorId);
             try (ResultSet rs = stmt.executeQuery()) {

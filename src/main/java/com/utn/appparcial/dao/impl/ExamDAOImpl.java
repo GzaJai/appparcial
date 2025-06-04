@@ -17,11 +17,12 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     public void save(Exam exam) {
-        String sql = "INSERT INTO exam (title, date, subject_id) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO exam (title, date, subject_id, professor_id) VALUES (?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, exam.getTitle());
             stmt.setDate(2, Date.valueOf(exam.getDate()));
             stmt.setLong(3, exam.getSubjectId());
+            stmt.setLong(4, exam.getProfessorId());
             stmt.executeUpdate();
 
             ResultSet rs = stmt.getGeneratedKeys();
@@ -44,7 +45,8 @@ public class ExamDAOImpl implements ExamDAO {
                         rs.getLong("id"),
                         rs.getString("title"),
                         rs.getDate("date").toLocalDate(),
-                        rs.getLong("subject_id")
+                        rs.getLong("subject_id"),
+                        rs.getLong("professor_id")
                 );
             }
         } catch (SQLException e) {
@@ -64,7 +66,8 @@ public class ExamDAOImpl implements ExamDAO {
                         rs.getLong("id"),
                         rs.getString("title"),
                         rs.getDate("date").toLocalDate(),
-                        rs.getLong("subject_id")
+                        rs.getLong("subject_id"),
+                        rs.getLong("professor_id")
                 ));
             }
         } catch (SQLException e) {
@@ -85,7 +88,8 @@ public class ExamDAOImpl implements ExamDAO {
                         rs.getLong("id"),
                         rs.getString("title"),
                         rs.getDate("date").toLocalDate(),
-                        rs.getLong("subject_id")
+                        rs.getLong("subject_id"),
+                        rs.getLong("professor_id")
                 ));
             }
         } catch (SQLException e) {
@@ -96,12 +100,13 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     public void update(Exam exam) {
-        String sql = "UPDATE exam SET title = ?, date = ?, subject_id = ? WHERE id = ?";
+        String sql = "UPDATE exam SET title = ?, date = ?, subject_id = ?, professor_id = ? WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, exam.getTitle());
             stmt.setDate(2, Date.valueOf(exam.getDate()));
             stmt.setLong(3, exam.getSubjectId());
-            stmt.setLong(4, exam.getId());
+            stmt.setLong(4, exam.getProfessorId());
+            stmt.setLong(5, exam.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -118,4 +123,31 @@ public class ExamDAOImpl implements ExamDAO {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public List<Exam> findByProfessorId(long professorId) {
+        List<Exam> exams = new ArrayList<>();
+        String sql = "SELECT * FROM exam WHERE professor_id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, professorId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Exam exam = new Exam(
+                        rs.getLong("id"),
+                        rs.getString("title"),
+                        rs.getDate("date").toLocalDate(),
+                        rs.getLong("subject_id"),
+                        rs.getLong("professor_id")
+                );
+                exams.add(exam);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return exams;
+    }
+
 }

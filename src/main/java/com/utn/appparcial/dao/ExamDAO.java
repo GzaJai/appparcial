@@ -11,4 +11,5 @@ public interface ExamDAO {
     List<Exam> findBySubjectId(Long subjectId);
     void update(Exam exam);
     void delete(Long id);
+    List<Exam> findByProfessorId(long professorId);
 }

@@ -9,4 +9,5 @@ public interface ProfessorDAO {
     List<Professor> findAll();
     void update(Professor professor);
     void delete(Long id);
+    Professor findByEmailAndPassword(String email, String password);
 }
